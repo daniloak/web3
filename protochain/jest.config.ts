@@ -31,7 +31,8 @@ const config: Config = {
   coveragePathIgnorePatterns: [
     "/node_modules/",
     "<rootDir>/src/server/blockchainServer.ts",
-    "<rootDir>/src/lib/blockinfo.ts"
+    "<rootDir>/src/lib/blockinfo.ts",
+    "<rootDir>/src/lib/transactionType.ts"
   ],
 
   // Indicates which provider should be used to instrument code for coverage

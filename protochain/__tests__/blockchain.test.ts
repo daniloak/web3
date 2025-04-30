@@ -1,8 +1,10 @@
 import { describe, test, expect, jest } from '@jest/globals'
 import Blockchain from '../src/lib/blockchain';
 import Block from '../src/lib/block';
+import Transaction from '../src/lib/transaction';
 
 jest.mock('../src/lib/block')
+jest.mock('../src/lib/transaction')
 
 describe('Blockchain tests', () =>{
     test('should has genesis block', () =>{
@@ -22,7 +24,11 @@ describe('Blockchain tests', () =>{
         blockchain.addBlock(new Block({
             index: 1, 
             previousHash: blockchain.blocks[0].hash, 
-            data: "block 2"
+            transactions: [new Transaction(
+                            {
+                                data: 'blockData'
+                            } as Transaction
+                        )],
         } as Block));
 
         expect(blockchain.isValid().success).toBeTruthy()
@@ -33,7 +39,11 @@ describe('Blockchain tests', () =>{
         blockchain.addBlock(new Block({
             index: 1, 
             previousHash: blockchain.blocks[0].hash, 
-            data: "block 2"
+            transactions: [new Transaction(
+                           {
+                               data: 'blockData'
+                           } as Transaction
+                       )],
         } as Block));
         blockchain.blocks[1].index = -1;
         expect(blockchain.isValid().success).toBeFalsy()
@@ -44,7 +54,11 @@ describe('Blockchain tests', () =>{
         const result = blockchain.addBlock(new Block({
             index: 1, 
             previousHash: blockchain.blocks[0].hash, 
-            data: "block 2"
+            transactions: [new Transaction(
+                            {
+                                data: 'blockData'
+                            } as Transaction
+                        )],
         } as Block));
 
         expect(result.success).toBeTruthy()
@@ -62,7 +76,11 @@ describe('Blockchain tests', () =>{
         const result = blockchain.addBlock(new Block({
             index: -1, 
             previousHash: blockchain.blocks[0].hash, 
-            data: "block 2"
+            transactions: [new Transaction(
+                            {
+                                data: 'blockData'
+                            } as Transaction
+                        )],
         } as Block));
 
         expect(result.success).toBeFalsy()
