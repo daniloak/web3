@@ -4,11 +4,12 @@
   "main": "index.js",
   "scripts": {
     "compile": "npx tsc",
-    "dev": "npx nodemon --watch './src' --exec 'npx ts-node ./src/blockchain.ts' -e ts",
+    "dev": "npx nodemon --watch './src' --exec 'npx ts-node ./src/lib/blockchain.ts' -e ts",
     "start": "node ./dist/blockchain.js",
     "test": "jest",
     "blockchain": "ts-node ./src/server/blockchainServer.ts --run",
-    "miner": "ts-node ./src/client/minerClient.ts"
+    "miner": "ts-node ./src/client/minerClient.ts",
+    "wallet": "ts-node ./src/client/walletClient.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +29,9 @@
   "dependencies": {
     "axios": "^1.8.4",
     "dotenv": "^16.5.0",
+    "ecpair": "^3.0.0",
     "express": "^5.1.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "tiny-secp256k1": "^2.2.3"
   }
 }

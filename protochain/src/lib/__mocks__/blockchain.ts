@@ -3,12 +3,15 @@ import Validation from "../validation";
 import BlockInfo from "../blockinfo";
 import Transaction from "./transaction";
 import TransactionType from "../transactionType";
+import TransactionSearch from "../transactionSearch";
 
 export default class Blockchain {
     blocks: Block[];
+    mempool: Transaction[];
     nextIndex: number= 0
 
     constructor(){
+        this.mempool = []
         this.blocks = [new Block({
             index:0, 
             transactions: [new Transaction({
@@ -33,6 +36,23 @@ export default class Blockchain {
         this.blocks.push(block);
         this.nextIndex++;
         return new Validation();
+    }
+
+    addTransaction(transaction: Transaction) : Validation {
+        const validation = transaction.isValid()
+        if (!validation.success) return validation
+
+        this.mempool.push(transaction)
+        return new Validation();
+    }
+
+    getTransaction(hash: string): TransactionSearch {
+        return {
+            mempoolIndex: 0,
+            transaction: {
+                hash
+            }
+        } as TransactionSearch
     }
 
     getFeePerTx(): number{
