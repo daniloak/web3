@@ -1,6 +1,7 @@
 import Block from "./block";
 import BlockInfo from "./blockinfo";
 import Transaction from "./transaction";
+import TransactionInput from "./transactionInput";
 import TransactionSearch from "./transactionSearch";
 import TransactionType from "./transactionType";
 import Validation from "./validation";
@@ -24,7 +25,7 @@ export default class Blockchain {
         this.blocks = [new Block({index:this.nextIndex, transactions: [
             new Transaction({
                 type: TransactionType.FEE,
-                data: new Date().toString()
+                txInput: new TransactionInput()
             } as Transaction)
         ]} as Block)];
         this.nextIndex++

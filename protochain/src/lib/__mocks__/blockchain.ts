@@ -4,6 +4,7 @@ import BlockInfo from "../blockinfo";
 import Transaction from "./transaction";
 import TransactionType from "../transactionType";
 import TransactionSearch from "../transactionSearch";
+import TransactionInput from "./transactionInput";
 
 export default class Blockchain {
     blocks: Block[];
@@ -15,7 +16,7 @@ export default class Blockchain {
         this.blocks = [new Block({
             index:0, 
             transactions: [new Transaction({
-                data: 'tx1',
+                txInput: new TransactionInput(),
                 type: TransactionType.FEE
             } as Transaction)], 
             timestamp: Date.now(), hash: 'abc' } as Block)];
@@ -63,7 +64,7 @@ export default class Blockchain {
         return {
             transactions: [new Transaction(
                 {
-                    data: new Date().toString()
+                    txInput: new TransactionInput()
                 } as Transaction
             )],
             difficulty: 0,

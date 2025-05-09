@@ -3,9 +3,11 @@ import { describe, expect, test, jest } from '@jest/globals';
 import { app } from '../src/server/blockchainServer'
 import Block from '../src/lib/block';
 import Transaction from '../src/lib/transaction';
+import TransactionInput from '../src/lib/transactionInput';
 
 jest.mock('../src/lib/block')
 jest.mock('../src/lib/blockchain')
+jest.mock('../src/lib/transactionInput')
 
 describe('BlockchainServer Tests', () => {
     test('GET /status - Should return status', async () => {
@@ -95,24 +97,14 @@ describe('BlockchainServer Tests', () => {
 
     test('POST /transactions - Should add tx', async () => {
         const tx = new Transaction(
-            {data: 'tx1'} as Transaction
+            {
+                txInput: new TransactionInput(), 
+                to:'carteiraTo'
+            } as Transaction
         )
-
         const response = await request(app)
-            .post('/transactions')
-            .send(tx)
-
-        expect(response.status).toEqual(201);
-    })
-
-    test('POST /transactions - Should add tx', async () => {
-        const tx = new Transaction(
-            {data: 'tx1'} as Transaction
-        )
-
-        const response = await request(app)
-            .post('/transactions')
-            .send(tx)
+        .post('/transactions')
+        .send(tx)
 
         expect(response.status).toEqual(201);
     })
@@ -126,8 +118,10 @@ describe('BlockchainServer Tests', () => {
     })
 
     test('POST /transactions - Should add tx (invalid data)', async () => {
+        const txInput= new TransactionInput()
+        txInput.amount = -1
         const tx = new Transaction(
-            {data: ''} as Transaction
+            {txInput} as Transaction
         )
 
         const response = await request(app)

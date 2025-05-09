@@ -3,8 +3,10 @@ import Block from '../src/lib/block';
 import BlockInfo from '../src/lib/blockinfo';
 import Transaction from '../src/lib/transaction';
 import TransactionType from '../src/lib/transactionType';
+import TransactionInput from '../src/lib/transactionInput';
 
 jest.mock('../src/lib/transaction')
+jest.mock('../src/lib/transactionInput')
 
 describe('Block tests', () =>{
     const exampleDifficulty = 0;
@@ -16,7 +18,7 @@ describe('Block tests', () =>{
             transactions: [
                 new Transaction(
                     {
-                        data: 'Genesis block'
+                        txInput: new TransactionInput()
                     } as Transaction)
             ]
         } as Block);
@@ -29,7 +31,7 @@ describe('Block tests', () =>{
                 previousHash: genesis.hash, 
                 transactions: [new Transaction(
                     {
-                        data: 'blockData'
+                        txInput: new TransactionInput()
                     } as Transaction
                 )]
             } as Block);
@@ -43,7 +45,7 @@ describe('Block tests', () =>{
         const block = Block.fromBlockInfo({
             transactions: [new Transaction(
                 {
-                    data: 'blockData'
+                    txInput: new TransactionInput()
                 } as Transaction
             )],
             difficulty: exampleDifficulty,
@@ -68,7 +70,7 @@ describe('Block tests', () =>{
     test('should NOT be valid (previousHash)', () =>{
         const block = new Block({index:1, transactions: [new Transaction(
             {
-                data: 'blockData'
+                txInput: new TransactionInput()
             } as Transaction
         )],} as Block);
         const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
@@ -79,7 +81,7 @@ describe('Block tests', () =>{
     test('should NOT be valid (timestamp)', () =>{
         const block = new Block({index:1, previousHash: genesis.hash, transactions: [new Transaction(
             {
-                data: 'blockData'
+                txInput: new TransactionInput()
             } as Transaction
         )],} as Block);
         block.timestamp = -1;
@@ -92,7 +94,7 @@ describe('Block tests', () =>{
     test('should NOT be valid (hash)', () =>{
         const block = new Block({index: 1, previousHash: genesis.hash, transactions: [new Transaction(
             {
-                data: 'blockData'
+                txInput: new TransactionInput()
             } as Transaction
         )],} as Block);
         block.mine(exampleDifficulty, exampleMiner);
@@ -107,7 +109,7 @@ describe('Block tests', () =>{
     test('should NOT be valid (no mined)', () =>{
         const block = new Block({index: 1, previousHash: genesis.hash, transactions: [new Transaction(
             {
-                data: 'blockData'
+                txInput: new TransactionInput()
             } as Transaction
         )],} as Block);
 
@@ -116,8 +118,14 @@ describe('Block tests', () =>{
         expect(valid.success).toBeFalsy();
     })
 
-    test('should NOT be valid (data)', () =>{
-        const block = new Block({index:1, previousHash: genesis.hash} as Block);
+    test('should NOT be valid (txInput)', () =>{
+        const txInput = new TransactionInput();
+        txInput.amount = -1;
+        const block = new Block({index:1, previousHash: genesis.hash, transactions: [new Transaction(
+            {
+                txInput
+            } as Transaction
+        )]} as Block);
         const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
 
         expect(valid.success).toBeFalsy();
@@ -126,7 +134,7 @@ describe('Block tests', () =>{
     test('should NOT be valid (index)', () =>{
         const block = new Block({index: -1, previousHash: genesis.hash, transactions: [new Transaction(
             {
-                data: 'blockData'
+                txInput: new TransactionInput()
             } as Transaction
         )],} as Block);
         const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
@@ -142,12 +150,12 @@ describe('Block tests', () =>{
                 transactions: [
                     new Transaction(
                     {
-                        data: 'blockData',
+                        txInput: new TransactionInput(),
                         type: TransactionType.FEE
                     } as Transaction),
                     new Transaction(
                     {
-                        data: 'blockData',
+                        txInput: new TransactionInput(),
                         type: TransactionType.FEE
                     } as Transaction)
                 ]
@@ -166,6 +174,8 @@ describe('Block tests', () =>{
                 transactions: [new Transaction()]
             } as Block);
         block.mine(exampleDifficulty, exampleMiner);
+
+        block.transactions[0].to = ""
 
         const valid = block.isValid(genesis.hash, genesis.index, exampleDifficulty);
         expect(valid.success).toBeFalsy();
