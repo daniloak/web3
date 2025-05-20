@@ -2,24 +2,26 @@ import Block from "./block";
 import Validation from "../validation";
 import BlockInfo from "../blockinfo";
 import Transaction from "./transaction";
-import TransactionType from "../transactionType";
 import TransactionSearch from "../transactionSearch";
 import TransactionInput from "./transactionInput";
+import TransactionOutput from "./transactionOutput";
 
 export default class Blockchain {
     blocks: Block[];
     mempool: Transaction[];
     nextIndex: number= 0
 
-    constructor(){
-        this.mempool = []
-        this.blocks = [new Block({
-            index:0, 
-            transactions: [new Transaction({
-                txInput: new TransactionInput(),
-                type: TransactionType.FEE
-            } as Transaction)], 
-            timestamp: Date.now(), hash: 'abc' } as Block)];
+    constructor(miner: string){
+        this.blocks = []
+        this.mempool = [new Transaction()]
+        this.blocks.push(new Block({
+            index: 0,
+            hash: 'abc',
+            previousHash: "",
+            miner,
+            timestamp: Date.now()
+        } as Block))
+
         this.nextIndex++
     }
 
@@ -28,6 +30,7 @@ export default class Blockchain {
     }
 
     getBlock(hash: string) : Block | undefined{
+        if(!hash || hash === "-1")return undefined
         return this.blocks.find(b => b.hash === hash);
     }
 
@@ -40,7 +43,7 @@ export default class Blockchain {
     }
 
     addTransaction(transaction: Transaction) : Validation {
-        const validation = transaction.isValid()
+        const validation = transaction.isValid(1, 10)
         if (!validation.success) return validation
 
         this.mempool.push(transaction)
@@ -48,11 +51,12 @@ export default class Blockchain {
     }
 
     getTransaction(hash: string): TransactionSearch {
+        if(hash === "-1"){
+            return { mempoolIndex: -1, blockIndex: -1} as TransactionSearch
+        }
         return {
             mempoolIndex: 0,
-            transaction: {
-                hash
-            }
+            transaction: new Transaction()
         } as TransactionSearch
     }
 
@@ -62,14 +66,10 @@ export default class Blockchain {
     
     getNextBlock() : BlockInfo {
         return {
-            transactions: [new Transaction(
-                {
-                    txInput: new TransactionInput()
-                } as Transaction
-            )],
-            difficulty: 1,
+            transactions: this.mempool.slice(0, 2),
+            difficulty: 2,
             previousHash: this.getLastBlock().hash,
-            index: 1,
+            index: this.blocks.length,
             feePerTx: this.getFeePerTx(),
             maxDifficulty: 62
         } as BlockInfo
@@ -77,5 +77,30 @@ export default class Blockchain {
 
     isValid() : Validation {       
         return new Validation();
+    }
+
+    getTxInputs(wallet: string): (TransactionInput | undefined)[]{
+        return [new TransactionInput({
+            amount: 10,
+            fromAddress: wallet,
+            previousTx: 'abc',
+            signature: 'abc'
+        } as TransactionInput)]
+    }
+
+    getTxOutputs(wallet: string): TransactionOutput[]{
+        return [new TransactionOutput({
+            amount: 10,
+            toAddress: wallet,
+            tx: 'abc'
+        } as TransactionOutput)]
+    }
+
+    getUtxo(wallet: string) : TransactionOutput[] {
+        return this.getTxOutputs(wallet)
+    }
+
+    getBalance(wallet: string) : number {
+        return 10;
     }
 }

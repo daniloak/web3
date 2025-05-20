@@ -6,7 +6,8 @@ import BlockInfo from "../lib/blockinfo";
 import Block from "../lib/block";
 import Wallet from "../lib/wallet"
 import Transaction from '../lib/transaction';
-import TransactionType from '../lib/transactionType';
+import TransactionOutput from '../lib/transactionOutput';
+import Blockchain from '../lib/blockchain';
 
 const BLOCKCHAIN_SERVER = process.env.BLOCKCHAIN_SERVER;
 
@@ -15,6 +16,35 @@ const minerWallet = new Wallet(process.env.MINER_WALLET)
 console.log(`Logged as ${minerWallet.publicKey}`)
 
 let totalMined = 0;
+
+function getRewardTx(blockInfo: BlockInfo, nextBlock: Block) : Transaction | undefined{
+    let amount = 0
+
+    if (blockInfo.difficulty <= blockInfo.maxDifficulty){
+        amount += Blockchain.getRewardAmount(blockInfo.difficulty)
+    }
+
+    const fees = nextBlock.transactions.map(tx => tx.getFee()).reduce((a, b) => a+b)
+    const feeCheck = nextBlock.transactions.length * blockInfo.feePerTx
+    if (fees < feeCheck){
+        console.log("Low fees. Awaiting next block")
+        setTimeout(()=>{
+            mine()
+        }, 5000)
+
+        return
+    }
+
+    amount += fees;   
+
+    const txo = new TransactionOutput({
+        toAddress: minerWallet.publicKey,
+        amount
+    } as TransactionOutput)
+    const tx = Transaction.fromReward(txo)
+
+    return tx;
+}
 
 async function mine() {
     console.log("Getting next block info...")
@@ -33,10 +63,10 @@ async function mine() {
 
     const newBlock = Block.fromBlockInfo(blockInfo);
 
-    newBlock.transactions.push(new Transaction({
-        to: minerWallet.publicKey,
-        type: TransactionType.FEE
-    } as Transaction))
+    const tx = getRewardTx(blockInfo, newBlock)
+    if (!tx) return
+
+    newBlock.transactions.push(tx)
 
     newBlock.miner = minerWallet.publicKey
 

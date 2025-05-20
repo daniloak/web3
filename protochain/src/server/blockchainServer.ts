@@ -4,6 +4,8 @@ dotenv.config()
 import express from 'express';
 import morgan from 'morgan';
 import { registerRoutes } from './routes';
+import Blockchain from '../lib/blockchain';
+import Wallet from '../lib/wallet';
 
 const PORT: number = parseInt(`${process.env.BLOCKCHAIN_PORT || 3000}`);
 
@@ -14,11 +16,14 @@ if (process.argv.includes('--run')) {
 }
 
 app.use(express.json());
-registerRoutes(app);
+
+const wallet = new Wallet(process.env.BLOCKCHAIN_WALLET)
+const blockchain = new Blockchain(wallet.publicKey);
+registerRoutes(app, blockchain);
 
 
 app.listen(PORT, () => {
-  console.log(`Blockchain server is running at ${PORT}`);
+  console.log(`Blockchain server is running at ${PORT}. Wallet ${wallet.publicKey}`);
 });
 
 export {

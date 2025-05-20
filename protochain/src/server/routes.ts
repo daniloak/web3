@@ -2,10 +2,9 @@ import { Express } from 'express';
 import Blockchain from '../lib/blockchain';
 import Block from '../lib/block';
 import Transaction from '../lib/transaction';
+import TransactionOutput from '../lib/transactionOutput';
 
-export const registerRoutes = (app: Express) => {
-  const blockchain = new Blockchain();
-
+export const registerRoutes = (app: Express, blockchain: Blockchain) => {
   app.get('/status', (req, res) => {
     res.json({
       mempool: blockchain.mempool.length,
@@ -63,6 +62,20 @@ export const registerRoutes = (app: Express) => {
     res.status(200).json({
       next: blockchain.mempool.slice(0, Blockchain.TX_PER_BLOCK),
       total: blockchain.mempool.length
+    })
+  })
+
+  app.get('/wallets/:wallet', (req, res) => {
+    const wallet = req.params.wallet;
+
+    const utxo = blockchain.getUtxo(wallet)
+    const balance = blockchain.getBalance(wallet)
+    const fee = blockchain.getFeePerTx()
+
+    res.status(200).json({
+      balance,
+      fee,
+      utxo
     })
   })
 };

@@ -60,7 +60,7 @@ export default class Block {
      * Check if the block is valid
      * @returns Returns true is the block is valid
      */
-    isValid(previousHash: string, previousIndex: number, difficulty: number): Validation {
+    isValid(previousHash: string, previousIndex: number, difficulty: number, feePerTx: number): Validation {
         if (this.transactions && this.transactions.length){
             const feeTxs = this.transactions.filter(tx=> tx.type === TransactionType.FEE);
             if (!feeTxs.length){
@@ -70,12 +70,15 @@ export default class Block {
             {
                 return new Validation(false, "Too many fees");
             }
-            if (feeTxs[0].to !== this.miner)
+            console.log('feeTx', {feeTxs})
+            console.log('miner', {miner: this.miner})
+            if (!feeTxs[0].txOutputs.some(txo => txo.toAddress === this.miner))
             {
                 return new Validation(false, "Invalid fee tx: different from miner")
             }
 
-            const validations = this.transactions.map(tx => tx.isValid());
+            const totalFees = feePerTx * this.transactions.filter(tx => tx.type !== TransactionType.FEE).length
+            const validations = this.transactions.map(tx => tx.isValid(difficulty, totalFees));
             const errors = validations.filter(v=> !v.success).map(v=>v.message);
             if (errors.length > 0){
                 return new Validation(false, `Invalid block due to invalid tx: ${errors.reduce((a, b)=>a+b)}`);
@@ -85,7 +88,7 @@ export default class Block {
         if(previousIndex !== this.index -1) return new Validation(false, "Invalid index.");
         if (this.timestamp < 1) return new Validation(false, "Invalid timestamp.");
         if (this.previousHash !== previousHash) return new Validation(false, "Invalid previousHash.");
-        if (!this.nonce || !this.miner) return new Validation(false, "No miner.");
+        if (this.nonce < 1 || !this.miner) return new Validation(false, "No miner.");
 
         const prefix = new Array(difficulty + 1).join("0");
         if (this.hash !== this.getHash() || !this.hash.startsWith(prefix)){
